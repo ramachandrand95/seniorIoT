@@ -4,9 +4,12 @@
 #include <OneWire.h> 
 #include <LowPower.h>
 #include <DallasTemperature.h>
+#include <DS3231.h>
+#include <LiquidCrystal.h> 
+
 // Data wire is plugged into pin 2 on the Arduino
-#define TEMP_ONE 2
-#define TEMP_TWO 3
+#define TEMP_ONE 3
+#define TEMP_TWO 9
 #define photoCell A0
 #define turbidity A1 
  
@@ -18,6 +21,15 @@ OneWire oneWireTwo(TEMP_TWO);
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensorsOne(&oneWireOne);
 DallasTemperature sensorsTwo(&oneWireTwo);
+
+char data[256];
+
+DS3231  rtc(SDA, SCL);
+LiquidCrystal lcd(1, 2, 4, 5, 6, 7); // Creates an LC object. Parameters: (rs, enable, d4, d5, d6, d7) 
+
+int buttonPin = 9;
+int flag = 0;
+int buttonState = 0;
 
 /* This driver uses the Adafruit unified sensor library (Adafruit_Sensor),
    which provides a common 'type' for sensor data and some helper functions.
@@ -76,6 +88,31 @@ void displaySensorDetails(void)
   delay(500);
 }
 
+void sampleTemps(){
+  double sensor1[10] ={};
+  double sensor2[10] ={};
+  for(int i = 0; i<10; i++){
+    sensor1[i] = sensorsOne.toFahrenheit(sensorsOne.getTempCByIndex(0));
+    sensor2[i] = sensorsTwo.toFahrenheit(sensorsTwo.getTempCByIndex(0));
+  }
+  averageArray(sensor1);
+  averageArray(sensor2);
+}
+void averageArray(double *array ){
+   double sum, avg;
+   int loop;
+   sum = avg = 0;  
+   for(loop = 0; loop < 10; loop++) {
+      sum = sum + array[loop];
+   }
+   
+   avg = sum / loop;
+   
+   Serial.println(avg);
+}
+
+
+
 /**************************************************************************/
 /*
     Configures the gain and integration time for the TSL2561
@@ -90,8 +127,8 @@ void configureSensor(void)
   
   /* Changing the integration time gives you better sensor resolution (402ms = 16-bit data) */
   //tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_13MS);      /* fast but low resolution */
-  // tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_101MS);  /* medium resolution and speed   */
-   tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_402MS);  /* 16-bit data but slowest conversions */
+   tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_101MS);  /* medium resolution and speed   */
+  //tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_402MS);  /* 16-bit data but slowest conversions */
 
   /* Update these values depending on what you've set above! */  
   Serial.println("------------------------------------");
@@ -108,13 +145,22 @@ void configureSensor(void)
  
 void setup(void)
 {
-  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+  //LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+  rtc.begin(); // Initialize the rtc object
+  lcd.begin(16,2); // Initializes the interface to the LCD screen, and specifies the dimensions (width and height) of the display } 
+  
+  rtc.setDOW(FRIDAY);     // Set Day-of-Week to SUNDAY
+  rtc.setTime(12, 02, 55);     // Set the time to 12:00:00 (24hr format)
+  rtc.setDate(14, 1, 2018);
+   
   pinMode(photoCell, INPUT);
   pinMode(turbidity, INPUT);
+  pinMode(buttonPin, INPUT);
+
   // start serial port
   Serial.begin(9600);
 
-  // Start up the library
+  // Start up temperature sensor library
   sensorsOne.begin();
   sensorsTwo.begin();
   
@@ -137,21 +183,77 @@ void setup(void)
   /* We're ready to go! */
   Serial.println("");
 }
+
+void parse_time(char* arr){
+  for(int i = 0; i < 40; i++){
+    if (arr[i] == 32){
+      arr[i] = '0';
+    }
+    Serial.print(arr[i]);
+  }
+  
+  
+}
  
  
 void loop(void)
 {
-  // call sensors.requestTemperatures() to issue a global temperature
+  /*******************************************************/
+  char* time = rtc.getTimeStr();
+  char* date = rtc.getDateStr();
+  char* time_with_extension;
+  time_with_extension = malloc(strlen(time)+40);
+  strcpy(time_with_extension, time);
+  strcat(time_with_extension, date);
+  Serial.println("");
+  //Serial.print("TIME: "); Serial.println(rtc.getTimeStr());
+  //Serial.print("DATE: "); Serial.println(rtc.getDateStr());
+  /*******************************************************/
+
+  
   // request to all devices on the bus
-  //Serial.print(" Requesting temperatures...");
   sensorsOne.requestTemperatures(); // Send the command to get temperatures
   sensorsTwo.requestTemperatures(); // Send the command to get temperatures
-  Serial.println("------------------------------------");
-  Serial.print("Temperature is: ");
-  Serial.println(sensorsOne.toFahrenheit(sensorsOne.getTempCByIndex(0)));
-  Serial.print("Deep Temperature is: ");
-  Serial.println(sensorsTwo.toFahrenheit(sensorsTwo.getTempCByIndex(0)));
-  delay(250);
+  //Serial.println("------------------------------------");
+  //Serial.print("Temperature is: ");
+  static float temp1 = sensorsOne.toFahrenheit(sensorsOne.getTempCByIndex(0));
+  static char result[10];
+  dtostrf(temp1, 5, 2, result);
+  strcat(time_with_extension, result);
+  //Serial.print("Deep Temperature is: ");
+  //Serial.println(sensorsTwo.toFahrenheit(sensorsTwo.getTempCByIndex(0)));
+  static float temp2 = sensorsTwo.toFahrenheit(sensorsTwo.getTempCByIndex(0));
+  static char result2[10];
+  dtostrf(temp2, 5, 2, result2);
+  strcat(time_with_extension, result2);
+  //Serial.println(result);
+  //parse_time(time_with_extension);
+  //parse_time(temp2);
+
+
+  /* Get a new sensor event */ 
+  sensors_event_t event;
+  tsl.getEvent(&event);
+ 
+  /* Display the results (light is measured in lux) */
+  //if (event.light)
+  //{
+  static float lumi = event.light;
+  static char lumi_char[10];
+  dtostrf(lumi, 8, 2, lumi_char);
+  //Serial.println(lumi_char);
+  strcat(time_with_extension, lumi_char);
+  parse_time(time_with_extension);
+  Serial.println("");
+  Serial.print(event.light); Serial.println(" lux");
+  //}
+  //else
+  //{
+    /* If event.light = 0 lux the sensor is probably saturated
+       and no reliable data could be generated! */
+  //  Serial.println("Sensor overload");
+  //}
+  delay(100000000);
   // You can have more than one IC on the same bus. 
   // 0 refers to the first IC on the wire
   //Serial.print("PhotoCell: ");
@@ -161,24 +263,12 @@ void loop(void)
   int sensorValue = analogRead(turbidity); 
   Serial.println(sensorValue);
   float voltage = sensorValue * (5.0/1024.0);
+  //(-1120.4(2.5)^2)+5742.3(2.5)-4352.9
   Serial.println(voltage);
-  delay(250);
-    /* Get a new sensor event */ 
-  sensors_event_t event;
-  tsl.getEvent(&event);
- 
-  /* Display the results (light is measured in lux) */
-  if (event.light)
-  {
-    Serial.print(event.light); Serial.println(" lux");
-  }
-  else
-  {
-    /* If event.light = 0 lux the sensor is probably saturated
-       and no reliable data could be generated! */
-    Serial.println("Sensor overload");
-  }
+  delay(500);
+  
   delay(250);
   Serial.println("------------------------------------");
+  Serial.println("");
 }
 
