@@ -22,7 +22,6 @@ OneWire oneWireTwo(TEMP_TWO);
 DallasTemperature sensorsOne(&oneWireOne);
 DallasTemperature sensorsTwo(&oneWireTwo);
 
-char data[256];
 
 DS3231  rtc(SDA, SCL);
 LiquidCrystal lcd(1, 2, 4, 5, 6, 7); // Creates an LC object. Parameters: (rs, enable, d4, d5, d6, d7) 
@@ -184,7 +183,7 @@ void setup(void)
   Serial.println("");
 }
 
-void parse_time(char* arr){
+void printArray(char* arr){
   for(int i = 0; i < 40; i++){
     if (arr[i] == 32){
       arr[i] = '0';
@@ -201,58 +200,54 @@ void loop(void)
   /*******************************************************/
   char* time = rtc.getTimeStr();
   char* date = rtc.getDateStr();
-  char* time_with_extension;
-  time_with_extension = malloc(strlen(time)+40);
-  strcpy(time_with_extension, time);
-  strcat(time_with_extension, date);
+  char* data;
+  data = malloc(strlen(time)+40);
+  strcpy(data, time);
+  strcat(data, date);
   Serial.println("");
-  //Serial.print("TIME: "); Serial.println(rtc.getTimeStr());
-  //Serial.print("DATE: "); Serial.println(rtc.getDateStr());
+  Serial.print("TIME: "); Serial.println(rtc.getTimeStr());
+  Serial.print("DATE: "); Serial.println(rtc.getDateStr());
   /*******************************************************/
 
   
   // request to all devices on the bus
   sensorsOne.requestTemperatures(); // Send the command to get temperatures
   sensorsTwo.requestTemperatures(); // Send the command to get temperatures
-  //Serial.println("------------------------------------");
-  //Serial.print("Temperature is: ");
+  Serial.println("------------------------------------");
+  Serial.print("Temperature is: ");
   static float temp1 = sensorsOne.toFahrenheit(sensorsOne.getTempCByIndex(0));
-  static char result[10];
-  dtostrf(temp1, 5, 2, result);
-  strcat(time_with_extension, result);
-  //Serial.print("Deep Temperature is: ");
-  //Serial.println(sensorsTwo.toFahrenheit(sensorsTwo.getTempCByIndex(0)));
+  Serial.println(temp1);
+  static char tempChar1[10];
+  dtostrf(temp1, 5, 2, tempChar1);
+  strcat(data, tempChar1);
+  Serial.print("Deep Temperature is: ");
   static float temp2 = sensorsTwo.toFahrenheit(sensorsTwo.getTempCByIndex(0));
-  static char result2[10];
-  dtostrf(temp2, 5, 2, result2);
-  strcat(time_with_extension, result2);
-  //Serial.println(result);
-  //parse_time(time_with_extension);
-  //parse_time(temp2);
-
+  Serial.println(temp2);
+  static char tempChar2[10];
+  dtostrf(temp2, 5, 2, tempChar2);
+  strcat(data, tempChar2);
 
   /* Get a new sensor event */ 
   sensors_event_t event;
   tsl.getEvent(&event);
  
   /* Display the results (light is measured in lux) */
-  //if (event.light)
-  //{
+  if (event.light)
+  {
+  Serial.print(event.light); Serial.println(" lux");
   static float lumi = event.light;
   static char lumi_char[10];
   dtostrf(lumi, 8, 2, lumi_char);
   //Serial.println(lumi_char);
-  strcat(time_with_extension, lumi_char);
-  parse_time(time_with_extension);
-  Serial.println("");
-  Serial.print(event.light); Serial.println(" lux");
-  //}
-  //else
-  //{
+  strcat(data, lumi_char);
+  printArray(data);
+  }
+  else
+  {
     /* If event.light = 0 lux the sensor is probably saturated
        and no reliable data could be generated! */
-  //  Serial.println("Sensor overload");
-  //}
+    Serial.println("Sensor overload");
+  }
   delay(100000000);
   // You can have more than one IC on the same bus. 
   // 0 refers to the first IC on the wire
