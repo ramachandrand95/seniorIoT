@@ -32,9 +32,9 @@ int flag = 0;
 int buttonState = 0;
 
 //setting up xbee transmit and receive pins.
-uint8_t xbee_recv = 4; 
-uint8_t xbee_trans = 5; 
-SoftwareSerial xbee(recv, trans);
+uint8_t xbee_recv = 2; 
+uint8_t xbee_trans = 4; 
+SoftwareSerial xbee(xbee_recv, xbee_trans);
 
 /* This driver uses the Adafruit unified sensor library (Adafruit_Sensor),
    which provides a common 'type' for sensor data and some helper functions.
@@ -198,6 +198,7 @@ void printArray(char* arr){
     }
     Serial.print(arr[i]);
   }
+  Serial.println("");
 }
  
  
@@ -206,8 +207,8 @@ void loop(void)
   /*******************************************************/
   char* time = rtc.getTimeStr();
   char* date = rtc.getDateStr();
-  char* data;
-  data = malloc(strlen(time)+40);
+  char data[50];
+ // data = malloc(strlen(time)+50);
   strcpy(data, time);
   strcat(data, date);
   Serial.println("");
@@ -246,7 +247,6 @@ void loop(void)
   dtostrf(lumi, 8, 2, lumi_char);
   //Serial.println(lumi_char);
   strcat(data, lumi_char);
-  printArray(data);
   }
   else
   {
@@ -269,8 +269,6 @@ void loop(void)
 //  delay(500);
   
   delay(250);
-  Serial.println("------------------------------------");
-  Serial.println("");
 
   Serial.print("Turbidity: ");
   int sensorValue = analogRead(turbidity); 
@@ -282,13 +280,23 @@ void loop(void)
   double NTU = -1120.4*(voltage*voltage)+5742.3*(voltage)-4352.9;
   Serial.println(NTU);
   static char NTU_DATA[10];
-  dtostrf(lumi, 8, 2, NTU_DATA);
+  dtostrf(NTU, 7, 2, NTU_DATA);
   strcat(data, NTU_DATA);
   delay(750);
   printArray(data);
+
+  
+  char test[20] = "okaaay";
+
+//  xbee.write(handshake_1);
+//  xbee.write(handshake_2);
+//  xbee.write(handshake_3);
+//  xbee.write(handshake_4);
   xbee.write(data);
+  
+  delay(5000);
   Serial.println("------------------------------------");
   Serial.println("");
-  free(data);
+  //free(data);
 }
 
