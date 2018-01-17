@@ -6,14 +6,13 @@
 #include <DallasTemperature.h>
 #include <DS3231.h>
 #include <LiquidCrystal.h> 
-#include <SoftwareSerial.h>
 
 // Data wire is plugged into pin 2 on the Arduino
 #define TEMP_ONE 3
 #define TEMP_TWO 9
 #define photoCell A0
 #define turbidity A1 
-
+ 
 // Setup a oneWire instance to communicate with any OneWire devices 
 // (not just Maxim/Dallas temperature ICs)
 OneWire oneWireOne(TEMP_ONE);
@@ -30,11 +29,6 @@ LiquidCrystal lcd(1, 2, 4, 5, 6, 7); // Creates an LC object. Parameters: (rs, e
 int buttonPin = 9;
 int flag = 0;
 int buttonState = 0;
-
-//setting up xbee transmit and receive pins.
-uint8_t xbee_recv = 4; 
-uint8_t xbee_trans = 5; 
-SoftwareSerial xbee(recv, trans);
 
 /* This driver uses the Adafruit unified sensor library (Adafruit_Sensor),
    which provides a common 'type' for sensor data and some helper functions.
@@ -150,6 +144,7 @@ void configureSensor(void)
  
 void setup(void)
 {
+  
   //LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
   rtc.begin(); // Initialize the rtc object
   lcd.begin(16,2); // Initializes the interface to the LCD screen, and specifies the dimensions (width and height) of the display } 
@@ -185,8 +180,6 @@ void setup(void)
   /* Setup the sensor gain and integration time */
   configureSensor();
   
-  //setting up xbee tx rx baud rate
-  xbee.begin(9600);
   /* We're ready to go! */
   Serial.println("");
 }
@@ -203,6 +196,7 @@ void printArray(char* arr){
  
 void loop(void)
 {
+  
   /*******************************************************/
   char* time = rtc.getTimeStr();
   char* date = rtc.getDateStr();
@@ -244,9 +238,8 @@ void loop(void)
   static float lumi = event.light;
   static char lumi_char[10];
   dtostrf(lumi, 8, 2, lumi_char);
-  //Serial.println(lumi_char);
   strcat(data, lumi_char);
-  printArray(data);
+  //printArray(data);
   }
   else
   {
@@ -254,24 +247,12 @@ void loop(void)
        and no reliable data could be generated! */
     Serial.println("Sensor overload");
   }
- // delay(100000000);
+  
   // You can have more than one IC on the same bus. 
   // 0 refers to the first IC on the wire
   //Serial.print("PhotoCell: ");
   //Serial.println(map(analogRead(photoCell),0,1023,0,100));
   
-//  Serial.print("Turbidity: ");
-//  int sensorValue = analogRead(turbidity); 
-//  Serial.println(sensorValue);
-//  float voltage = sensorValue * (5.0/1024.0);
-//  //(-1120.4(2.5)^2)+5742.3(2.5)-4352.9
-//  Serial.println(voltage);
-//  delay(500);
-  
-  delay(250);
-  Serial.println("------------------------------------");
-  Serial.println("");
-
   Serial.print("Turbidity: ");
   int sensorValue = analogRead(turbidity); 
   Serial.println(sensorValue);
@@ -285,8 +266,7 @@ void loop(void)
   dtostrf(lumi, 8, 2, NTU_DATA);
   strcat(data, NTU_DATA);
   delay(750);
-  printArray(data);
-  xbee.write(data);
+  //printArray(data);
   Serial.println("------------------------------------");
   Serial.println("");
   free(data);
