@@ -190,8 +190,6 @@ void printArray(char* arr){
     }
     Serial.print(arr[i]);
   }
-  
-  
 }
  
  
