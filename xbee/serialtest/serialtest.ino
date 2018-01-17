@@ -6,10 +6,10 @@
 char myData;
 int const ledpin = 13;
 //XBeeResponse XBee = XBeeResponse();
-XBee xbee = XBee();
+//XBee xbee = XBee();
 //XBeeWithCallbacks xbee;
 uint8_t recv = 2; 
-uint8_t trans = 3; 
+uint8_t trans = 4; 
 SoftwareSerial soft_serial(recv, trans);
 void setup(){
   // Start up our serial port, we configured our XBEE devices for 9600 bps.
