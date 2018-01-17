@@ -12,7 +12,7 @@
 #define TEMP_TWO 9
 #define photoCell A0
 #define turbidity A1 
-int i=0;
+
 // Setup a oneWire instance to communicate with any OneWire devices 
 // (not just Maxim/Dallas temperature ICs)
 OneWire oneWireOne(TEMP_ONE);
