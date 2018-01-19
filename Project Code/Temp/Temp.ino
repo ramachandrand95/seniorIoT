@@ -99,6 +99,7 @@ void sampleTemps(){
   for(int i = 0; i<10; i++){
     sensor1[i] = sensorsOne.toFahrenheit(sensorsOne.getTempCByIndex(0));
     sensor2[i] = sensorsTwo.toFahrenheit(sensorsTwo.getTempCByIndex(0));
+    
   }
   averageArray(sensor1);
   averageArray(sensor2);
@@ -260,14 +261,6 @@ void loop(void)
   //Serial.print("PhotoCell: ");
   //Serial.println(map(analogRead(photoCell),0,1023,0,100));
   
-//  Serial.print("Turbidity: ");
-//  int sensorValue = analogRead(turbidity); 
-//  Serial.println(sensorValue);
-//  float voltage = sensorValue * (5.0/1024.0);
-//  //(-1120.4(2.5)^2)+5742.3(2.5)-4352.9
-//  Serial.println(voltage);
-//  delay(500);
-  
   delay(250);
 
   Serial.print("Turbidity: ");
@@ -287,11 +280,6 @@ void loop(void)
 
   
   char test[20] = "okaaay";
-
-//  xbee.write(handshake_1);
-//  xbee.write(handshake_2);
-//  xbee.write(handshake_3);
-//  xbee.write(handshake_4);
   xbee.write(data);
   
   delay(5000);
