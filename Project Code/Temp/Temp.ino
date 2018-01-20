@@ -7,10 +7,11 @@
 #include <DS3231.h>
 #include <LiquidCrystal.h> 
 #include <SoftwareSerial.h>
-
+#include <SPI.h>
+#include <SD.h>
 // Data wire is plugged into pin 2 on the Arduino
-#define TEMP_ONE 3
-#define TEMP_TWO 9
+#define TEMP_ONE 2
+#define TEMP_TWO 3
 #define photoCell A0
 #define turbidity A1 
 

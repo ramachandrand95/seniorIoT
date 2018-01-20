@@ -2,8 +2,22 @@ void setup() {
   Serial.begin(9600); //Baud rate: 9600
 }
 void loop() {
-  int sensorValue = analogRead(A1);// read the input on analog pin 0:
-  float voltage = sensorValue * (5.0 / 1024.0); // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
-  Serial.println(voltage); // print out the value you read:
+Serial.print("Turbidity 1 mess: ");
+  int sensorValue = analogRead(A0); 
+  Serial.println(sensorValue);
+  float voltage = sensorValue * (5.0/1024.0);
+  //4.20025 equation = 0
+  Serial.print(voltage);Serial.println(" V");
+  double NTU = -1120.4*(voltage*voltage)+5742.3*(voltage)-4352.9;
+  Serial.print(NTU); Serial.println(" NTU");
   delay(500);
+  Serial.print("Turbidity 2 new: ");
+  sensorValue = analogRead(A1);
+  Serial.println(sensorValue);
+  voltage = sensorValue * (5.0/1024.0);
+  Serial.print(voltage);Serial.println(" V");
+  NTU = -1120.4*(voltage*voltage)+5742.3*(voltage)-4352.9;
+  Serial.print(NTU); Serial.println(" NTU");
+  delay(2000);
+  Serial.println("");
 }
