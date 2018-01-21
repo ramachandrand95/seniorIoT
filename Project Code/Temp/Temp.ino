@@ -76,100 +76,86 @@ void setup(void)
 }
 
 void loop(void){
-  clockStatus(data);
-  temperatureSensor(data);
-  luxSensor(data);
+  String Date = getDate();
+  String TimeStatus = getTimeStatus();
+  String Temp1 = String(getTempOne());
+  String Temp2 = String(getTempTwo());
   delay(250);
-  turbiditySensor(data);
-  printArray(data); 
+  String Lux = String(getLux());
+  String waterClarity = String(getTurbidity());
+  String dataLog = Date+","+TimeStatus+","+Temp1+","+Temp2+","+Lux+","+waterClarity;
   xbee.write(data);
   delay(5000);
-  Serial.println(F("------------------------------------"));
-  Serial.println(F(""));
 }
-void clockStatus(char *data)
+String getTimeStatus()
 {
-  char* time = rtc.getTimeStr();
-  char* date = rtc.getDateStr();
-  //strcpy(data, time);
-  strcat(data, date);
-  Serial.println("");
   Serial.print(F("TIME: ")); Serial.println(rtc.getTimeStr());
-  Serial.print(F("DATE: ")); Serial.println(rtc.getDateStr());
+  return rtc.getTimeStr();
 }
-void temperatureSensor(char *data)
+
+String getDate()
 {
-    // request to all devices on the bus
+  Serial.print(F("DATE: ")); Serial.println(rtc.getDateStr());
+  return rtc.getDateStr();
+}
+float getTempOne()
+{
   sensorsOne.requestTemperatures(); // Send the command to get temperatures
-  sensorsTwo.requestTemperatures(); // Send the command to get temperatures
-  Serial.println(F("------------------------------------"));
   Serial.print(F("Temperature is: "));
   static float temp1 = sensorsOne.toFahrenheit(sensorsOne.getTempCByIndex(0));
   Serial.println(temp1);
-  static char tempChar1[10];
-  dtostrf(temp1, 5, 2, tempChar1);
-  strcat(data, tempChar1);
+  return temp1;
+}
+
+float getTempTwo()
+{
+  sensorsTwo.requestTemperatures(); // Send the command to get temperatures
   Serial.print(F("Deep Temperature is: "));
   static float temp2 = sensorsTwo.toFahrenheit(sensorsTwo.getTempCByIndex(0));
-  Serial.println(temp2);
-  static char tempChar2[10];
-  dtostrf(temp2, 5, 2, tempChar2);
-  strcat(data, tempChar2);
+  Serial.print(temp2);
+  return temp2;
 }
 
-void luxSensor(char *data)
+float getLux()
 {
-    /* Get a new sensor event */ 
-  sensors_event_t event;
-  tsl.getEvent(&event);
- 
-  /* Display the results (light is measured in lux) */
-  if (event.light){
-  Serial.print(event.light); Serial.println(F(" lux"));
-  static float lumi = event.light;
-  static char lumi_char[10];
-  dtostrf(lumi, 8, 2, lumi_char);
-  //Serial.println(lumi_char);
-  strcat(data, lumi_char);
-  }else{
-    /* If event.light = 0 lux the sensor is probably saturated
-       and no reliable data could be generated! */
-    Serial.println("Sensor overload");
+  float lux1[10];
+  for(int i = 0; i<10; i++){
+     /* Get a new sensor event */ 
+    sensors_event_t event;
+    tsl.getEvent(&event);
+    if(event.light){
+      lux1[i] = event.light;
+    }
+    else{
+      Serial.println("Sensor overload");
+    }
   }
+  float average = averageArray(lux1);
+  return average;
 }
 
-void turbiditySensor(char *data){
-  Serial.print(F("Turbidity: "));
-  int sensorValue = analogRead(turbidity); 
-  Serial.println(sensorValue);
-  float voltage = sensorValue * (5.0/1024.0);
-  //4.20025 when the equation below is set to zero
-  Serial.println(voltage);
-  double NTU = -1120.4*(voltage*voltage)+5742.3*(voltage)-4352.9;
-  Serial.println(NTU);
-  static char NTU_DATA[10];
-  dtostrf(NTU, 7, 2, NTU_DATA);
-  strcat(data, NTU_DATA);
-  delay(750);
+double getTurbidity(){
+ float turbidity1[10];
+  for(int i = 0; i< 10; i++){
+     int sensorValue = analogRead(turbidity);
+     //Serial.println("turbidity sensor value: " + sensorValue);
+     float voltage = sensorValue * (5.0/1024.0);
+     float NTU = -1120.4*(voltage*voltage)+5742.3*(voltage)-4352.9;
+     //Serial.println("Turbidity: " + NTU);
+     turbidity1[i] = NTU;
+  }
+  float average = averageArray(turbidity1);
+  return average;
 }
-void averageArray(double *array ){
-   double sum, avg;
+float averageArray(float *array ){
+   float sum, avg;
    int loop;
    sum = avg = 0;  
    for(loop = 0; loop < 10; loop++) {
       sum = sum + array[loop];
    }
    
-   avg = sum / loop;
-   
-   Serial.println(avg);
+   avg = sum / loop;   
+  return avg;
 }
-void printArray(char* arr){
-  for(int i = 0; i < 50; i++){
-    if (arr[i] == 32){
-      arr[i] = '0';
-    }
-    Serial.print(arr[i]);
-  }
-  Serial.println("");
-}
+
