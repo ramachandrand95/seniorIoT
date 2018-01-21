@@ -256,19 +256,13 @@ void loop(void)
        and no reliable data could be generated! */
     Serial.println("Sensor overload");
   }
- // delay(100000000);
-  // You can have more than one IC on the same bus. 
-  // 0 refers to the first IC on the wire
-  //Serial.print("PhotoCell: ");
-  //Serial.println(map(analogRead(photoCell),0,1023,0,100));
   
   delay(250);
 
   Serial.print("Turbidity: ");
   int sensorValue = analogRead(turbidity); 
   Serial.println(sensorValue);
-  float voltage = 4.1;
-  //sensorValue * (5.0/1024.0);
+  float voltage = sensorValue * (5.0/1024.0);
   //4.20025
   Serial.println(voltage);
   double NTU = -1120.4*(voltage*voltage)+5742.3*(voltage)-4352.9;
