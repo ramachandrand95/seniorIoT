@@ -63,14 +63,14 @@ void sendPacket(String packet) {
 
 
 void loop() {
-  if(DebugSerial.available()){
-    load=DebugSerial.readString();
-    sendPacket(load);
-    //DebugSerial.print(load);
-    //DebugSerial.println(load.length());
-  }
+//  if(DebugSerial.available()){
+//    load=DebugSerial.readString();
+//    sendPacket(load);
+//    //DebugSerial.print(load);
+//    //DebugSerial.println(load.length());
+//  }
 
-//  char test[10]="test";
-//  sendPacket(test,sizeof(test));
-//  delay(5000);
+  String t="test";
+  sendPacket(t);
+  delay(5000);
 }
