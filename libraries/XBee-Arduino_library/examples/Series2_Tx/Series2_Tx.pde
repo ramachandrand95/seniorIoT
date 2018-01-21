@@ -1,4 +1,3 @@
-
 /**
  * Copyright (c) 2009 Andrew Rapp. All rights reserved.
  *
@@ -31,8 +30,7 @@ XBee xbee = XBee();
 uint8_t payload[] = { 0, 0 };
 
 // SH + SL Address of receiving XBee
-//XBeeAddress64 addr64 = XBeeAddress64(0x0013a200, 0x403e0f30);
-XBeeAddress64 addr64 = XBeeAddress64(0x00000000, 0x00000000);
+XBeeAddress64 addr64 = XBeeAddress64(0x0013a200, 0x403e0f30);
 ZBTxRequest zbTx = ZBTxRequest(addr64, payload, sizeof(payload));
 ZBTxStatusResponse txStatus = ZBTxStatusResponse();
 
@@ -59,48 +57,46 @@ void setup() {
   pinMode(errorLed, OUTPUT);
 
   Serial.begin(9600);
-  Serial1.begin(9600);
-  xbee.setSerial(Serial1);
+  xbee.setSerial(Serial);
 }
 
 void loop() {   
   // break down 10-bit reading into two bytes and place in payload
-  if(Serial.available()){
-    pin5 = Serial.read();
-    payload[0] = pin5 >> 8 & 0xff;
-    payload[1] = pin5 & 0xff;
-  
-    xbee.send(zbTx);
-    // flash TX indicator
-    flashLed(statusLed, 1, 100);
-    
-    // after sending a tx request, we expect a status response
-    // wait up to half second for the status response
-    if (xbee.readPacket(500)) {
-      // got a response!
-    
-      // should be a znet tx status              
-      if (xbee.getResponse().getApiId() == ZB_TX_STATUS_RESPONSE) {
-        xbee.getResponse().getZBTxStatusResponse(txStatus);
-    
-        // get the delivery status, the fifth byte
-        if (txStatus.getDeliveryStatus() == SUCCESS) {
-          Serial.print("SENT");
-          flashLed(statusLed, 5, 50);
-        } else {
-          // the remote XBee did not receive our packet. is it powered on?
-          Serial.print("NOT SENT");
-          flashLed(errorLed, 3, 500);
-        }
+  pin5 = analogRead(5);
+  payload[0] = pin5 >> 8 & 0xff;
+  payload[1] = pin5 & 0xff;
+
+  xbee.send(zbTx);
+
+  // flash TX indicator
+  flashLed(statusLed, 1, 100);
+
+  // after sending a tx request, we expect a status response
+  // wait up to half second for the status response
+  if (xbee.readPacket(500)) {
+    // got a response!
+
+    // should be a znet tx status            	
+    if (xbee.getResponse().getApiId() == ZB_TX_STATUS_RESPONSE) {
+      xbee.getResponse().getZBTxStatusResponse(txStatus);
+
+      // get the delivery status, the fifth byte
+      if (txStatus.getDeliveryStatus() == SUCCESS) {
+        // success.  time to celebrate
+        flashLed(statusLed, 5, 50);
+      } else {
+        // the remote XBee did not receive our packet. is it powered on?
+        flashLed(errorLed, 3, 500);
       }
-    } else if (xbee.getResponse().isError()) {
-      Serial.print("NOT SENT1");
-      //nss.print("Error reading packet.  Error code: ");  
-      //nss.println(xbee.getResponse().getErrorCode());
-    } else {
-      Serial.print("NOT SENT2");
-      // local XBee did not provide a timely TX Status Response -- should not happen
-      flashLed(errorLed, 2, 50);
     }
+  } else if (xbee.getResponse().isError()) {
+    //nss.print("Error reading packet.  Error code: ");  
+    //nss.println(xbee.getResponse().getErrorCode());
+  } else {
+    // local XBee did not provide a timely TX Status Response -- should not happen
+    flashLed(errorLed, 2, 50);
   }
+
+  delay(1000);
 }
+

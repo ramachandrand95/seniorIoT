@@ -1,22 +1,15 @@
-//#include <Printers.h>
-//#include <XBee.h>
+
 #include <SoftwareSerial.h>
- 
-//int myData = 0;
+
 char myData;
 int const ledpin = 13;
-//XBeeResponse XBee = XBeeResponse();
-//XBee xbee = XBee();
-//XBeeWithCallbacks xbee;
-uint8_t recv = 2; 
-uint8_t trans = 4; 
-SoftwareSerial soft_serial(recv, trans);
+
+SoftwareSerial soft_serial(10,11);
 void setup(){
   // Start up our serial port, we configured our XBEE devices for 9600 bps.
   Serial.begin(9600);
   soft_serial.begin(9600);
   //Serial1.begin(9600);
-  //xbee.setSerial(Serial1);
   pinMode(ledpin, OUTPUT);
 }
 
