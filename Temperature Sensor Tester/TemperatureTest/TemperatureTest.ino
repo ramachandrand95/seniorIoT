@@ -41,10 +41,10 @@ void loop(void)
  Serial.println(sensorTwo.toFahrenheit(sensorTwo.getTempCByIndex(0)));
  delay(1000); 
  Serial.println("Taking 10 Samples on both sensors...");
- Serial.print(getTemp_one()); Serial.println(" Average of Temp 1");
- Serial.print(getTemp_two()); Serial.println(" Average of Deep Temp ");
+ //Serial.print(getTemp_one()); Serial.println(" Average of Temp 1");
+ //Serial.print(getTemp_two()); Serial.println(" Average of Deep Temp ");
  Serial.println("");
- printArray(temp1);
+// printArray(temp1);
  //delay(10000);
 } 
 void printArray(float *array){

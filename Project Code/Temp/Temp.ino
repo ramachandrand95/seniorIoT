@@ -28,10 +28,8 @@ DS3231  rtc(SDA, SCL);
 char data[50];
 
 //setting up xbee transmit and receive pins.
-uint8_t xbee_recv = 2; 
-uint8_t xbee_trans = 4; 
-SoftwareSerial xbee(xbee_recv, xbee_trans);
-   
+SoftwareSerial xbee_serial(8, 9);
+XBeeWithCallbacks xbee;
 Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, 12345);
  
 void setup(void)
@@ -158,4 +156,27 @@ float averageArray(float *array ){
    avg = sum / loop;   
   return avg;
 }
-
+int sendPacket(String packet) {
+    //extracting payload from data packet
+    int payload_size=packet.length()+1;
+    char payload[payload_size];
+    packet.toCharArray(payload, payload_size);
+    
+    Serial.print("SENDING: ");
+    Serial.write((uint8_t *)payload, payload_size);
+    Serial.println(" ");
+    
+    ZBTxRequest txRequest;
+    txRequest.setAddress64(0x0000000000000000);
+    txRequest.setPayload((uint8_t *)payload, payload_size);
+    
+    uint8_t status = xbee.sendAndWait(txRequest, 5000);
+    if (status == 0) {
+      Serial.println(F("Succesfully sent packet"));
+      return 0;
+    } else {
+      Serial.print(F("Failed to send packet. Status: 0x"));
+      Serial.println(status, HEX);
+      return 1;
+    }
+}
