@@ -16,7 +16,9 @@
 #include <SoftwareSerial.h>
 #include <Printers.h>
 
-SoftwareSerial xbee_serial(10, 11);
+#define rx 7
+#define tx 8
+SoftwareSerial xbee_serial(rx, tx);
 #define DebugSerial Serial
 #define XBeeSerial xbee_serial
 
@@ -34,31 +36,23 @@ void setup() {
   delay(1);
 }
 
-void sendPacket(String packet) {
-    //extracting payload from data packet
+int sendPacket(String packet) {
+    //extracting payload information
+    //length of payload
     int payload_size=packet.length()+1;
     char payload[payload_size];
+    //extracting payload to be sent in API frame
     packet.toCharArray(payload, payload_size);
-    
-    DebugSerial.print("SENDING: ");
-    DebugSerial.write((uint8_t *)payload, payload_size);
-    DebugSerial.println(" ");
-    
+    //creating data frame
     ZBTxRequest txRequest;
+    //setting adress to 0x0 sends message to coordinator
     txRequest.setAddress64(0x0000000000000000);
+    //adding payload to data frame
     txRequest.setPayload((uint8_t *)payload, payload_size);
-    
-    //uint8_t payload[] = {'H', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd', '!'};
-    //char payload[] = "hello";
-    //txRequest.setPayload((uint8_t *)payload, sizeof(payload));
-    
-    uint8_t status = xbee.sendAndWait(txRequest, 5000);
-    if (status == 0) {
-      DebugSerial.println(F("Succesfully sent packet"));
-    } else {
-      DebugSerial.print(F("Failed to send packet. Status: 0x"));
-      DebugSerial.println(status, HEX);
-    }
+    //send data frame 
+    //check for successfull transmission.
+    //returns 0 for sucessfull transmission 
+    return xbee.sendAndWait(txRequest, 5000);
 }
 
 
