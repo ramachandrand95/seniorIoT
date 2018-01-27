@@ -1,11 +1,12 @@
+#include <Printers.h>
+#include <XBee.h>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_TSL2561_U.h>
 #include <OneWire.h> 
 #include <LowPower.h>
 #include <DallasTemperature.h>
-#include <DS3231.h>
-#include <LiquidCrystal.h> 
+#include <DS3231.h> 
 #include <SoftwareSerial.h>
 #include <SPI.h>
 #include <SD.h>
@@ -22,14 +23,14 @@ OneWire oneWireTwo(TEMP_TWO);
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensorsOne(&oneWireOne);
 DallasTemperature sensorsTwo(&oneWireTwo);
-
+File file;
+const int CS_PIN = 10;
 DS3231  rtc(SDA, SCL);
-//LiquidCrystal lcd(1, 2, 4, 5, 6, 7); // Creates an LC object. Parameters: (rs, enable, d4, d5, d6, d7) 
-char data[50];
 
-//setting up xbee transmit and receive pins.
-SoftwareSerial xbee_serial(8, 9);
+//setting up xbee transmit and receive pins.////////////////////////////////////////
+SoftwareSerial xbee_serial(7, 8);
 XBeeWithCallbacks xbee;
+///////////////////////////////////////////////////////////////////////////////////
 Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, 12345);
  
 void setup(void)
@@ -49,8 +50,7 @@ void setup(void)
   sensorsOne.begin();
   sensorsTwo.begin();
   
-   Serial.println(F("Light Sensor Test")); Serial.println(F(""));
-   /* Initialise the sensor */
+  /* Initialise the sensor */
   //use tsl.begin() to default to Wire, 
   //tsl.begin(&Wire2) directs api to use Wire2, etc.
   if(!tsl.begin())
@@ -67,8 +67,17 @@ void setup(void)
   tsl.enableAutoRange(true);            /* Auto-gain ... switches automatically between 1x and 16x */
   tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_402MS);  /* 16-bit data but slowest conversions */
 
-  //setting up xbee tx rx baud rate
-  xbee.begin(9600);
+  //setting up xbee tx rx baud rate//////////////////////////////
+  xbee_serial.begin(9600);
+  xbee.begin(xbee_serial);
+  ///////////////////////////////////////////////////////////////
+//  openFile("test.txt");
+//  while (file.available()){
+//    Serial.println(readLine());
+//  }
+//  closeFile();
+//  initializeSD();
+  ///////////////////////////////////////////////////////////
   /* We're ready to go! */
   Serial.println(F(""));
 }
@@ -79,38 +88,41 @@ void loop(void){
   String Temp1 = String(getTempOne());
   String Temp2 = String(getTempTwo());
   delay(250);
-  String Lux = String(getLux());
+  //String Lux = String(getLux());
   String waterClarity = String(getTurbidity());
-  String dataLog = Date+","+TimeStatus+","+Temp1+","+Temp2+","+Lux+","+waterClarity;
-  xbee.write(data);
+  String dataLog = Date+','+TimeStatus+','+Temp1+','+Temp2+','+waterClarity;
+  //String dataLog = Date+","+TimeStatus+","+Temp1+","+Temp2+","+Lux+","+waterClarity;
+  Serial.println(dataLog);
+  sendPacket(dataLog);
+  //writeToFile(dataLog);
   delay(5000);
 }
 String getTimeStatus()
 {
-  Serial.print(F("TIME: ")); Serial.println(rtc.getTimeStr());
+  //Serial.print(F("TIME: ")); Serial.println(rtc.getTimeStr());
   return rtc.getTimeStr();
 }
 
 String getDate()
 {
-  Serial.print(F("DATE: ")); Serial.println(rtc.getDateStr());
+  //Serial.print(F("DATE: ")); Serial.println(rtc.getDateStr());
   return rtc.getDateStr();
 }
 float getTempOne()
 {
   sensorsOne.requestTemperatures(); // Send the command to get temperatures
-  Serial.print(F("Temperature is: "));
+  //Serial.print(F("Temperature is: "));
   static float temp1 = sensorsOne.toFahrenheit(sensorsOne.getTempCByIndex(0));
-  Serial.println(temp1);
+  //Serial.println(temp1);
   return temp1;
 }
 
 float getTempTwo()
 {
   sensorsTwo.requestTemperatures(); // Send the command to get temperatures
-  Serial.print(F("Deep Temperature is: "));
+  //Serial.print(F("Deep Temperature is: "));
   static float temp2 = sensorsTwo.toFahrenheit(sensorsTwo.getTempCByIndex(0));
-  Serial.print(temp2);
+  //Serial.println(temp2);
   return temp2;
 }
 
@@ -129,6 +141,7 @@ float getLux()
     }
   }
   float average = averageArray(lux1);
+  //Serial.println(average);
   return average;
 }
 
@@ -143,6 +156,7 @@ double getTurbidity(){
      turbidity1[i] = NTU;
   }
   float average = averageArray(turbidity1);
+  //Serial.print(average);Serial.println(" NTU");
   return average;
 }
 float averageArray(float *array ){
@@ -180,3 +194,90 @@ int sendPacket(String packet) {
       return 1;
     }
 }
+//String readLine()
+//{
+//  String received = "";
+//  char ch;
+//  while (file.available())
+//  {
+//    ch = file.read();
+//    if (ch == '\n'&& received != "")
+//    {
+//      if(received.indexOf("Not")>0){
+//        Serial.println("need to send!");
+//      }
+//      return String(received);
+//      
+//    }
+//    else
+//    {
+//      received += ch;
+//    }
+//  }
+//  return "";
+//}
+//void initializeSD()
+//{
+//  Serial.println("Initializing SD card...");
+//  pinMode(CS_PIN, OUTPUT);
+//  digitalWrite(CS_PIN,HIGH);
+//  if (SD.begin())
+//  {
+//    Serial.println("SD card is ready to use.");
+//  } else
+//  {
+//    Serial.println("SD card initialization failed");
+//    return;
+//  }
+//}
+//
+//int createFile(const char filename[])
+//{
+//  file = SD.open(filename, FILE_WRITE);
+//
+//  if (file)
+//  {
+//    //Serial.println("File created successfully.");
+//    return 1;
+//  } else
+//  {
+//    //Serial.println("Error while creating file.");
+//    return 0;
+//  }
+//}
+//void closeFile()
+//{
+//  if (file)
+//  {
+//    file.close();
+//    //Serial.println("File closed");
+//  }
+//}
+//int openFile(const char filename[])
+//{
+//  file = SD.open(filename);
+//  if (file)
+//  {
+//    //Serial.println("File opened with success!");
+//    return 1;
+//  } else
+//  {
+//    //Serial.println("Error opening file...");
+//    return 0;
+//  }
+//}
+//int writeToFile(String text)
+//{
+//  if (file)
+//  {
+//    file.println(text);
+//    //Serial.println(text);
+//    return 1;
+//  } else
+//  {
+//    //Serial.println("Couldn't write to file");
+//    return 0;
+//  }
+//}
+
+

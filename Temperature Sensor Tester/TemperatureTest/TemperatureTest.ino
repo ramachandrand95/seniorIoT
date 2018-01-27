@@ -34,13 +34,13 @@ void loop(void)
  sensorOne.requestTemperatures(); // Send the command to get temperature reading from sensor 1
  sensorTwo.requestTemperatures(); // send the command to get temperature reading from sensor 2
 /********************************************************************/
- Serial.println("Single Sample reading");
- Serial.print("Shallow Temperature is: "); 
- Serial.println(sensorOne.toFahrenheit(sensorOne.getTempCByIndex(0))); // Why "byIndex"?  
- Serial.print("Deep Temperature is: ");
- Serial.println(sensorTwo.toFahrenheit(sensorTwo.getTempCByIndex(0)));
+ Serial.println(F("Single Sample reading"));
+ Serial.print(F("Shallow Temperature is: ")); 
+ Serial.println(sensorOne.getTempCByIndex(0)); // Why "byIndex"?  
+ Serial.print(F("Deep Temperature is: "));
+ Serial.println(sensorTwo.getTempCByIndex(0));
  delay(1000); 
- Serial.println("Taking 10 Samples on both sensors...");
+ //Serial.println("Taking 10 Samples on both sensors...");
  //Serial.print(getTemp_one()); Serial.println(" Average of Temp 1");
  //Serial.print(getTemp_two()); Serial.println(" Average of Deep Temp ");
  Serial.println("");
