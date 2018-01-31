@@ -1,25 +1,23 @@
-#include <Printers.h>
+//#include <Printers.h>
 #include <XBee.h>
 #include <SoftwareSerial.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_TSL2561_U.h>
 #include <RTClibExtended.h>
 #include <OneWire.h> 
-#include <LowPower.h>
+//#include <LowPower.h>
 #include <DallasTemperature.h>
 #include <SPI.h>
 #include <SD.h>
 
 // Data wire is plugged into pin 2 on the Arduino
-#define TEMP 2
-#define turbidity A0
-const int CS_PIN = 10;
+
 // Setup a oneWire instance to communicate with any OneWire devices 
 // (not just Maxim/Dallas temperature ICs)
-OneWire oneWire(TEMP);
+OneWire oneWire(3);
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
-File file;
+//File file;
 RTC_DS3231 RTC;
 //setting up xbee transmit and receive pins.////////////////////////////////////////
 SoftwareSerial xbee_serial(7, 8);
@@ -34,7 +32,7 @@ void setup(void)
   Wire.begin();
   RTC.begin();
   RTC.adjust(DateTime(__DATE__, __TIME__));   //set RTC date and time to COMPILE time
-  pinMode(turbidity, INPUT);
+  pinMode(A0, INPUT);
 
   // start serial port
   Serial.begin(9600);
@@ -62,31 +60,13 @@ void setup(void)
   //setting up xbee tx rx baud rate//////////////////////////////
   xbee_serial.begin(9600);
   xbee.begin(xbee_serial);
-  ///////////////////////////////////////////////////////////////
-  openFile("test.txt");
-//  while (file.available()){
-//    Serial.println(readLine());
-//  }
-  closeFile();
-  pinMode(CS_PIN, OUTPUT);
-  digitalWrite(CS_PIN,HIGH);
-  if (SD.begin())
-  {
-    Serial.println(F("SD card is ready to use."));
-  } else
-  {
-    Serial.println(F("SD card initialization failed"));
-    return;
-  }
-  ///////////////////////////////////////////////////////////
-  /* We're ready to go! */
   }
 
 void loop(void){
   String dataLog = RTC_Info()+','+getTemperatures()+','+getLux()+','+getTurbidity();
  // Serial.println(dataLog);
   sendPacket(dataLog);
-  writeToFile(dataLog);
+//  writeToFile(dataLog);
 }
 String RTC_Info(){
   DateTime now = RTC.now();
@@ -97,10 +77,12 @@ String RTC_Info(){
 
 String getTemperatures(){
   sensors.requestTemperatures(); // Send the command to get temperatures
-  float temp1 = sensors.toFahrenheit(sensors.getTempCByIndex(0));
-  float temp2 = sensors.toFahrenheit(sensors.getTempCByIndex(1));
-  String temp = String(temp1) + ',' + String(temp2);
-  return temp;
+  //float temp1 = sensors.toFahrenheit(sensors.getTempCByIndex(0));
+  //float temp2 = sensors.toFahrenheit(sensors.getTempCByIndex(1));
+  //String temp = String(temp1) + ',' + String(temp2);
+  //or
+  //String temp = String(sensors.toFahrenheit(sensors.getTempCByIndex(0))) + ',' + String(sensors.toFahrenheit(sensors.getTempCByIndex(1)));
+  return String(sensors.toFahrenheit(sensors.getTempCByIndex(0))) + ',' + String(sensors.toFahrenheit(sensors.getTempCByIndex(1)));;
 }
 
 String getLux()
@@ -125,7 +107,7 @@ String getLux()
 String getTurbidity(){
  float turbidity1[10];
   for(int i = 0; i< 10; i++){
-     int sensorValue = analogRead(turbidity);
+     int sensorValue = analogRead(A0);
      //Serial.println("turbidity sensor value: " + sensorValue);
      float voltage = sensorValue * (5.0/1024.0);
      float NTU = -1120.4*(voltage*voltage)+5742.3*(voltage)-4352.9;
@@ -171,76 +153,4 @@ int sendPacket(String packet) {
       return 1;
     }
 }
-String readLine()
-{
-  String received = "";
-  char ch;
-  while (file.available())
-  {
-    ch = file.read();
-    if (ch == '\n'&& received != "")
-    {
-      if(received.indexOf("Not")>0){
-        Serial.println(F("need to send!"));
-      }
-      return String(received);
-      
-    }
-    else
-    {
-      received += ch;
-    }
-  }
-  return "";
-}
-
-int createFile(const char filename[])
-{
-  file = SD.open(filename, FILE_WRITE);
-
-  if (file)
-  {
-    //Serial.println("File created successfully.");
-    return 1;
-  } else
-  {
-    //Serial.println("Error while creating file.");
-    return 0;
-  }
-}
-void closeFile()
-{
-  if (file)
-  {
-    file.close();
-    //Serial.println("File closed");
-  }
-}
-int openFile(const char filename[])
-{
-  file = SD.open(filename);
-  if (file)
-  {
-    //Serial.println("File opened with success!");
-    return 1;
-  } else
-  {
-    //Serial.println("Error opening file...");
-    return 0;
-  }
-}
-int writeToFile(String text)
-{
-  if (file)
-  {
-    file.println(text);
-    //Serial.println(text);
-    return 1;
-  } else
-  {
-    //Serial.println("Couldn't write to file");
-    return 0;
-  }
-}
-
 
