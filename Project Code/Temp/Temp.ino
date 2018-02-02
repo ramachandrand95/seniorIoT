@@ -17,7 +17,7 @@
 OneWire oneWire(3);
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
-//File file;
+File file;
 RTC_DS3231 RTC;
 //setting up xbee transmit and receive pins.////////////////////////////////////////
 SoftwareSerial xbee_serial(7, 8);
@@ -99,9 +99,8 @@ String getLux()
       Serial.println(F("Sensor overload"));
     }
   }
-  String average = String(averageArray(lux1));
   //Serial.println(average);
-  return average;
+  return String(averageArray(lux1));
 }
 
 String getTurbidity(){
@@ -109,25 +108,21 @@ String getTurbidity(){
   for(int i = 0; i< 10; i++){
      int sensorValue = analogRead(A0);
      //Serial.println("turbidity sensor value: " + sensorValue);
-     float voltage = sensorValue * (5.0/1024.0);
-     float NTU = -1120.4*(voltage*voltage)+5742.3*(voltage)-4352.9;
-     //Serial.println("Turbidity: " + NTU);
-     turbidity1[i] = NTU;
+     //float voltage = sensorValue * (5.0/1024.0);
+     //float NTU = -1120.4*(voltage*voltage)+5742.3*(voltage)-4352.9;
+     //turbidity1[i] = NTU;
+    turbidity1[i] = -1120.4*((sensorValue * (5.0/1024.0))*(sensorValue * (5.0/1024.0)))+5742.3*(sensorValue * (5.0/1024.0))-4352.9; 
   }
-  String average = String(averageArray(turbidity1));
-  //Serial.print(average);Serial.println(" NTU");
-  return average;
+  return String(averageArray(turbidity1));
 }
 float averageArray(float *array ){
-   float sum, avg;
+   float sum;
    int loop;
-   sum = avg = 0;  
+   sum =0;
    for(loop = 0; loop < 10; loop++) {
       sum = sum + array[loop];
    }
-   
-   avg = sum / loop;   
-  return avg;
+  return sum / loop;   
 }
 int sendPacket(String packet) {
     //extracting payload from data packet
