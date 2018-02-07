@@ -192,7 +192,41 @@ void printArray(char* arr){
     Serial.print(arr[i]);
   }
 }
- 
+void writeToFile (String fileName,String data){
+  File myFile = SD.open(fileName,FILE_WRITE);
+  if(myFile){
+    Serial.println(fileName);
+    myFile.println(data);
+    Serial.println("write data to file complete");
+    myFile.close();
+  }
+  else{
+    Serial.println("error opening file");
+  }
+}
+void readTestFile (String fileName){
+  File myFile = SD.open(fileName, FILE_READ);
+  String received = "";
+  char ch;
+  int count = 0;
+  while (myFile.available())
+  {
+    ch = myFile.read();
+    if (ch == '\n')
+    {
+      if(received.indexOf("Not")>0){
+        Serial.println(received);
+        Serial.println("need to send!");
+        count++;
+      }
+      received = "";     
+    }
+    else
+    {
+      received += ch;
+    }
+  }
+}
  
 void loop(void)
 {

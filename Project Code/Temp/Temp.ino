@@ -17,7 +17,8 @@
 OneWire oneWire(3);
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
-File file;
+const int CS_PIN = 10;
+//File file;
 RTC_DS3231 RTC;
 //setting up xbee transmit and receive pins.////////////////////////////////////////
 SoftwareSerial xbee_serial(7, 8);
@@ -60,12 +61,14 @@ void setup(void)
   //setting up xbee tx rx baud rate//////////////////////////////
   xbee_serial.begin(9600);
   xbee.begin(xbee_serial);
+  initializeSD();
   }
 
 void loop(void){
   String dataLog = RTC_Info()+','+getTemperatures()+','+getLux()+','+getTurbidity();
  // Serial.println(dataLog);
   sendPacket(dataLog);
+  readTestFile("test.txt");
 //  writeToFile(dataLog);
 }
 String RTC_Info(){
@@ -147,5 +150,67 @@ int sendPacket(String packet) {
       Serial.println(status, HEX);
       return 1;
     }
+}
+/*
+ * initialize SD
+ */
+void initializeSD()
+{
+  Serial.println("Initializing SD card...");
+  pinMode(CS_PIN, OUTPUT);
+  digitalWrite(CS_PIN,HIGH);
+  if (SD.begin())
+  {
+    Serial.println("SD card is ready to use.");
+  } else
+  {
+    Serial.println("SD card initialization failed");
+    return;
+  }
+}
+/*
+ * fuction: write to data to SD card
+ * parameter: fileName, data
+ * return: void 
+ */
+void writeToFile (String fileName,String data){
+  File myFile = SD.open(fileName,FILE_WRITE);
+  if(myFile){
+    Serial.println(fileName);
+    myFile.println(data);
+    Serial.println("write data to file complete");
+    myFile.close();
+  }
+  else{
+    Serial.println("error opening file");
+  }
+}
+/*
+ * function: read how many unsent data from specified file
+ * parameter: fileName
+ * return: void
+ */
+void readTestFile (String fileName){
+  File myFile = SD.open(fileName, FILE_READ);
+  String received = "";
+  char ch;
+  int count = 0;
+  while (myFile.available())
+  {
+    ch = myFile.read();
+    if (ch == '\n')
+    {
+      if(received.indexOf("Not")>0){
+        Serial.println(received);
+        Serial.println("need to send!");
+        count++;
+      }
+      received = "";     
+    }
+    else
+    {
+      received += ch;
+    }
+  }
 }
 
