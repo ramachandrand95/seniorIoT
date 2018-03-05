@@ -1,3 +1,4 @@
+#include <Wire.h>
 #include <RTClibExtended.h>
 #include <Adafruit_TSL2561_U.h>
 #include <Adafruit_Sensor.h>
@@ -36,8 +37,9 @@ void setup()
   Serial.begin(9600);
   
   //RTC
+  Wire.begin();
   RTC.begin();
-  RTC.adjust(DateTime(__DATE__, __TIME__));
+  //RTC.adjust(DateTime(__DATE__, __TIME__));
   
   //Luminosity
   if(!tsl.begin())

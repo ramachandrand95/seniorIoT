@@ -4,26 +4,28 @@ import serial
 from serial.tools import list_ports
 
 def send(buf):
-    buf=buf[15:(len(buf)-2)]
-    data=''.join([x.decode() for x in buf if x!=b'\x00'])
+    data=''.join([x.decode() for x in buf[15:(len(buf)-2)] if x!=b'\x00'])
     value=data.split("+")
+    value.append(str(int(buf[12].hex()+buf[13].hex(),16)))
     print(value)
     ##write to file
     with open('data.csv', 'a') as csvfile:
-        fieldnames = ['date','Time', 'Temp1', 'Temp2', 'Luminosity', 'Turbidity']
+        fieldnames = ['Buoy','Date', 'Time', 'Temperatur 1', 'Temperature 2', 'Luminosity', 'Turbidity']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         temp=value[1].split(",")
         date=value[0].split(",")
-        writer.writerow({fieldnames[0]: date[1], fieldnames[1]: date[0], fieldnames[2]: temp[0], fieldnames[3]: temp[1], fieldnames[4]: value[2], fieldnames[5]: value[3]})
+        writer.writerow({fieldnames[0]: value[4], fieldnames[1]: date[1], fieldnames[2]: date[0],
+                         fieldnames[3]: temp[0], fieldnames[4]: temp[1],
+                         fieldnames[5]: value[2], fieldnames[6]: value[3]})
 
 if __name__ == "__main__":
     ##open file
     if not os.path.isfile('data.csv'):
         with open('data.csv', 'w') as csvfile:
-            fieldnames = ['date', 'Time', 'Temp1', 'Temp2', 'Luminosity', 'Turbidity']
+            fieldnames = ['Buoy','Date', 'Time', 'Temperatur 1', 'Temperature 2', 'Luminosity', 'Turbidity']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
-    ##com port stuff   
+    ##finding com port  
     prev_ports=[]
     com_port="0"
     for port_no, description, address in list(list_ports.comports()):
@@ -35,6 +37,7 @@ if __name__ == "__main__":
         if len(curr_ports) > len(prev_ports):
             com_port=list(set(curr_ports)-set(prev_ports))[0]
     print(com_port)
+    #opening and reading from com port
     ser = serial.Serial(com_port,9600)
     buff=[]
     while(ser.isOpen()):
