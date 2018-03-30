@@ -1,5 +1,0 @@
-{
-    "terminal.integrated.env.windows": {
-        "PATH": "C:\\Users\\ramachandrand\\.platformio\\penv\\Scripts;C:\\ProgramData\\Oracle\\Java\\javapath;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files (x86)\\Box\\Box Edit\\;C:\\Program Files\\Git\\cmd;C:\\Program Files\\Calibre2\\;C:\\Users\\ramachandrand\\AppData\\Local\\Microsoft\\WindowsApps;;C:\\Program Files\\Microsoft VS Code\\bin;C:\\ProgramData\\Oracle\\Java\\javapath;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files (x86)\\Box\\Box Edit\\;C:\\Program Files\\Git\\cmd;C:\\Program Files\\Calibre2\\;C:\\Users\\ramachandrand\\AppData\\Local\\Microsoft\\WindowsApps;;C:\\Program Files\\Microsoft VS Code\\bin"
-    }
-}
